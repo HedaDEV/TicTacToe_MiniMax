@@ -1,1 +1,3 @@
-"# TicTacToe_MiniMax" 
+##TICTACTOE
+
+#### TICTACTOE Game with MiniMax algo
