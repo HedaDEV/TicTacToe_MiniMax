@@ -1,3 +1,6 @@
+import matplotlib.pyplot as plt
+import networkx as nx
+
 def print_board(board):
     for row in board:
         print(" | ".join(row))
@@ -43,13 +46,52 @@ def minimax(board, depth, is_maximizing, player, opponent):
             board[move[0]][move[1]] = " "
             best_score = min(score, best_score)
         return best_score
+    
+def minimax_graph(board, depth, is_maximizing, player, opponent, graph, parent_node=None, move_made=None, max_depth=3):
+    node_label = board_to_string(board)
+    if move_made is not None:
+        node_label += f"\nMove: {move_made}"
+    graph.add_node(node_label)
+    if parent_node:
+        graph.add_edge(parent_node, node_label)
+    
+    if depth >= max_depth:
+        return 0, node_label  # Stop going deeper
 
+    if is_winner(board, player):
+        return 1, node_label
+    if is_winner(board, opponent):
+        return -1, node_label
+    if not get_available_moves(board):
+        return 0, node_label
+
+    best_score = float('-inf') if is_maximizing else float('inf')
+    for move in get_available_moves(board):
+        board[move[0]][move[1]] = player if is_maximizing else opponent
+        score, child_node = minimax_graph(board, depth + 1, not is_maximizing, player, opponent, graph, node_label, move, max_depth)
+        board[move[0]][move[1]] = " "
+        if is_maximizing and score > best_score or not is_maximizing and score < best_score:
+            best_score = score
+    return best_score, node_label
+
+def board_to_string(board):
+    return "\n".join(" | ".join(row) for row in board)
+
+def draw_minimax_tree():
+    board = [[" " for _ in range(3)] for _ in range(3)]
+    G = nx.DiGraph()
+    minimax_graph(board, 0, True, "X", "O", G, max_depth=1)
+    pos = nx.spring_layout(G)
+    plt.figure(figsize=(12, 12))
+    nx.draw(G, pos, with_labels=True, node_size=2500, node_color='lightblue', font_size=8)
+    plt.show()
+    
 def best_move(board, player, opponent):
     move_found = None
     best_score = float('-inf')
     for move in get_available_moves(board):
         board[move[0]][move[1]] = player
-        score = minimax(board, 0, False, player, opponent)
+        score = minimax(board, 9, False, player, opponent)
         board[move[0]][move[1]] = " "
         if score > best_score:
             best_score = score
@@ -74,4 +116,6 @@ def ai_vs_ai():
     else:
         print("It's a draw!")
 
-ai_vs_ai()
+#ai_vs_ai()
+draw_minimax_tree()
+print("END")
